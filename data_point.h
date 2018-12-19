@@ -13,4 +13,10 @@ struct data_point {
     std::string     name;
 };
 
+struct tweet {
+    int user_id;
+    int tweet_id;
+    std::vector<std::string> tokens;
+};
+
 #endif //PROJECT2_DATA_POINT_H
