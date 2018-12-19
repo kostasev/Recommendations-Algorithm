@@ -3,4 +3,4 @@ project(Recomendations)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(Recomendations main.cpp)
+add_executable(Recomendations main.cpp utilities.cpp utilities.h constants.h)
