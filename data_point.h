@@ -11,6 +11,7 @@ template <typename T>
 struct data_point {
     std::vector<T>  point;
     std::string     name;
+    int sum;
 };
 
 struct tweet {

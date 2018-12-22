@@ -47,6 +47,11 @@ void feed_voc(string file, map<string,float>& voc ){
     in.close();
 }
 
+void add_vectors(vector<double>& v1,vector<double> v2){
+    for(int i=0;i<v1.size();i++)
+        v1[i]+=v2[i];
+}
+
 void feed_tweets(string file, map<int,tweet>& tweets ){
     vector<string> temp;
     tweet twt;
@@ -74,6 +79,20 @@ void feed_tweets(string file, map<int,tweet>& tweets ){
     }
     in.close();
 }
+
+void mean_vec(vector<double> vec,int sum){
+    for(int i=0;i<vec.size();i++){
+        vec[i]/=sum;
+    }
+}
+
+void mean_all(map<int,data_point<double>>& feels){
+    map<int,data_point<double>>::iterator it;
+    for(it=feels.begin();it!=feels.end();it++){
+        mean_vec(it->second.point,it->second.sum);
+    }
+}
+
 
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
@@ -109,8 +128,41 @@ int main(int argc, char** argv) {
     feed_coins(consts::coins,coinz);
     feed_voc(consts::voc,voc);
     feed_tweets(consts::tweets,raw_tweets);
-    for (map<int,tweet>::iterator it=raw_tweets.begin();it!=raw_tweets.end();it++){
-        cout << "tweet id: "<<it->first << " user id: " << it->second.user_id << " len: " << it->second.tokens.size()<<endl;
+
+
+    map<int,data_point<double>> feels;
+    data_point<double> temp;
+    temp.sum=0;
+
+    for(int i=0;i<100;i++)
+        temp.point.push_back(0.0);
+    map<int,tweet>::iterator it;
+    for ( it=raw_tweets.begin();it!=raw_tweets.end();it++ ){
+        feels.insert(pair<int,data_point<double >>(it->second.user_id,temp));
     }
+    vector<double> tmp;
+    for( it =raw_tweets.begin(); it!=raw_tweets.end();it++ ){
+        tmp=calc_feeling(it->second.tokens, voc, coinz);
+        add_vectors(feels[it->second.user_id].point,tmp);
+    }
+    //mean_all(feels);
+    cout <<"Users: " << feels.size() << endl;
+
     return 0;
+}
+
+vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<string> * coins){
+    vector<double> feel;
+    double sum;
+    int flag=1;
+    for(int i=0;i<tweet.size();i++){
+        sum+=voc[tweet[i]];
+    }
+    sum=sum/sqrt((sum*sum)+15);
+    for(int i=0;i<100;i++){
+        for(int j=0;j<tweet.size();j++){
+            if
+        }
+    }
+    return feel;
 }
