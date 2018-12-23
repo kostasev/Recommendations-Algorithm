@@ -94,6 +94,37 @@ void mean_all(map<int,data_point<double>>& feels){
 }
 
 
+bool is_mentioned(vector<string> v1,vector<string> v2){
+    for (int i=0;i<v1.size();i++){
+        for (int j=0;j<v2.size();j++){
+            if (v1[i]==v2[j])
+                return true;
+        }
+    }
+    return false;
+}
+
+
+vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<string> * coins){
+    vector<double> feel(100,0.0);
+    double sum;
+    int flag=0;
+    map<string,float>::iterator it;
+    for(int i=0;i<tweet.size();i++){
+        it = voc.find(tweet[i]);
+        if (it != voc.end())
+            sum+=voc[tweet[i]];
+    }
+    sum=sum/sqrt((sum*sum)+15);
+    for(int i=0;i<100;i++){ //for each coin
+        if(is_mentioned(coins[i],tweet)){
+            feel[i]=sum;
+        }
+    }
+    return feel;
+}
+
+
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
     string input="", output="";
@@ -131,6 +162,7 @@ int main(int argc, char** argv) {
 
 
     map<int,data_point<double>> feels;
+
     data_point<double> temp;
     temp.sum=0;
 
@@ -147,22 +179,17 @@ int main(int argc, char** argv) {
     }
     //mean_all(feels);
     cout <<"Users: " << feels.size() << endl;
-
-    return 0;
-}
-
-vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<string> * coins){
-    vector<double> feel;
-    double sum;
-    int flag=1;
-    for(int i=0;i<tweet.size();i++){
-        sum+=voc[tweet[i]];
-    }
-    sum=sum/sqrt((sum*sum)+15);
-    for(int i=0;i<100;i++){
-        for(int j=0;j<tweet.size();j++){
-            if
+    map<int,data_point<double>>::iterator fit;
+    int z=0;
+    for (fit=feels.begin();fit!=feels.end();fit++){
+        if( fit->first==45454) {
+            cout << "User: " << fit->first << " size: " << fit->second.point.size() << endl;
+            for (int i = 0; i < fit->second.point.size(); i++)
+                cout << fit->second.point[i] << " ";
+            cout << endl;
         }
+        z++;
     }
-    return feel;
+    cout <<"z: "<<z;
+    return 0;
 }
