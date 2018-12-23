@@ -154,6 +154,7 @@ int main(int argc, char** argv) {
     vector<string> coinz[100];
     map<string,float> voc;
     map<int,tweet> raw_tweets;
+    map<int,data_point<double>> feels;
 
     feed_data_set(consts::input_file,vec_tweets,dim,num_lines);
     feed_coins(consts::coins,coinz);
@@ -161,8 +162,7 @@ int main(int argc, char** argv) {
     feed_tweets(consts::tweets,raw_tweets);
 
 
-    map<int,data_point<double>> feels;
-
+    //Start -- Read Feels for users
     data_point<double> temp;
     temp.sum=0;
 
@@ -176,20 +176,37 @@ int main(int argc, char** argv) {
     for( it =raw_tweets.begin(); it!=raw_tweets.end();it++ ){
         tmp=calc_feeling(it->second.tokens, voc, coinz);
         add_vectors(feels[it->second.user_id].point,tmp);
+        tmp.clear();
     }
-    //mean_all(feels);
-    cout <<"Users: " << feels.size() << endl;
-    map<int,data_point<double>>::iterator fit;
-    int z=0;
-    for (fit=feels.begin();fit!=feels.end();fit++){
-        if( fit->first==45454) {
-            cout << "User: " << fit->first << " size: " << fit->second.point.size() << endl;
-            for (int i = 0; i < fit->second.point.size(); i++)
-                cout << fit->second.point[i] << " ";
-            cout << endl;
+    //End -- Read feels of users
+
+    //Start -- Read Feelings of clusters
+    ifstream cluster;
+    string word,line;
+    cluster.open(consts::clust_50);
+    vector<int> cl_items;
+    while(getline(cluster,line)){
+        int clust_id=stoi(line);
+        feels.insert(pair<int,data_point<double >>(clust_id,temp));
+        getline(cluster,line);
+        istringstream iss(line);
+        while (getline(iss,word,' ')) {
+            int post_id = stoi(word);
+            tweet twt=raw_tweets[post_id];
+            tmp=calc_feeling(twt.tokens, voc, coinz);
+            add_vectors(feels[clust_id].point,tmp);
+            tmp.clear();
         }
-        z++;
     }
-    cout <<"z: "<<z;
+    map<int,data_point<double>>::iterator fit;
+    for(fit=feels.begin();fit!=feels.end();fit++){
+        cout << "User: " << fit->first <<endl;
+        for(int i=0;i<fit->second.point.size();i++) {
+            cout << fit->second.point[i] << " " ;
+        }
+        cout << endl;
+        if(fit->first==0)
+            break;
+    }
     return 0;
 }
