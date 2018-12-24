@@ -12,10 +12,10 @@
 #include <cmath>
 #include <chrono>
 #include <random>
-#include <map>
-#include <sstream>
 #include <unistd.h>
 #include "data_point.h"
+#include <map>
+#include <sstream>
 #include "constants.h"
 
 using namespace std;
