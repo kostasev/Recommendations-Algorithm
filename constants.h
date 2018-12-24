@@ -13,16 +13,6 @@ namespace consts {
     const std::string voc="C:\\Users\\kosti\\CLionProjects\\Recomendations\\data_files\\vader_lexicon.csv" ;
     const std::string tweets="C:\\Users\\kosti\\CLionProjects\\Recomendations\\data_files\\tweets_dataset_small.csv" ;
     const std::string clust_50="C:\\Users\\kosti\\CLionProjects\\Recomendations\\clusters\\000_50.txt" ;
-    const double z = 0.15915494309;
-}
-
-namespace const_lsh {
-    const int k = 4;
-    const int L = 6;
-    const int w = 350;
-    const double R = 400.0;
-    const int table_size = 4;
-    const std::string def_func = "cosine";
 }
 
 #endif //UNTITLED_CONSTANTS_H

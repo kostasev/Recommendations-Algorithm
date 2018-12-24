@@ -31,7 +31,8 @@ void mean_vec(vector<double> vec,int sum);
 void mean_all(map<int,data_point<double>>& feels);
 bool is_mentioned(vector<string> v1,vector<string> v2);
 vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<string> * coins);
+void user_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc);
 void cluster_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc);
+
 void print_feels(map<int,data_point<double>> feels);
-bool vectors_eq(std::vector<double> v1, std::vector<double> v2);
 #endif //PROJECT2_UTILITIES_H

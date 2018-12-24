@@ -15,12 +15,10 @@
 #include "constants.h"
 #include "utilities.h"
 #include "data_point.h"
-#include "Hash_table.h"
-#include "Value.h"
-#include "Key.h"
 
 using namespace std;
 
+<<<<<<< HEAD
 void feed_coins(string file, vector<string>* coins ){
     vector<string> temp;
     string word,line;
@@ -128,6 +126,8 @@ vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<
 }
 
 
+=======
+>>>>>>> parent of d4fe9b1... fuckedup
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
     string input="", output="";
@@ -158,13 +158,13 @@ int main(int argc, char** argv) {
     map<string,float> voc;
     map<int,tweet> raw_tweets;
     map<int,data_point<double>> feels;
-    map<int,data_point<double>>::iterator fit;
 
     feed_data_set(consts::input_file,vec_tweets,dim,num_lines);
     feed_coins(consts::coins,coinz);
     feed_voc(consts::voc,voc);
     feed_tweets(consts::tweets,raw_tweets);
 
+<<<<<<< HEAD
 
     data_point<double> temp;
     temp.sum=0;
@@ -213,5 +213,10 @@ int main(int argc, char** argv) {
             break;
     }*/
     
+=======
+    user_feels( raw_tweets, feels,coinz, voc);
+    cluster_feels(raw_tweets,feels,coinz,voc);
+    print_feels(feels);
+>>>>>>> parent of d4fe9b1... fuckedup
     return 0;
 }

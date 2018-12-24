@@ -143,14 +143,6 @@ bool is_mentioned(vector<string> v1,vector<string> v2){
     return false;
 }
 
-bool vectors_eq(std::vector<double> v1, std::vector<double> v2){
-    for (int i = 0 ; i<v1.size() ; i++){
-        if(v1[i]!=v2[i]){
-            return false;
-        }
-    }
-    return true;
-}
 
 vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<string> * coins){
     vector<double> feel(100,0.0);
@@ -171,7 +163,23 @@ vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<
     return feel;
 }
 
+void user_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc){
+    data_point<double> temp;
+    temp.sum=0;
 
+    for(int i=0;i<100;i++)
+        temp.point.push_back(0.0);
+    map<int,tweet>::iterator it;
+    for ( it=raw_tweets.begin();it!=raw_tweets.end();it++ ){
+        feels.insert(pair<int,data_point<double >>(it->second.user_id,temp));
+    }
+    vector<double> tmp;
+    for( it =raw_tweets.begin(); it!=raw_tweets.end();it++ ){
+        tmp=calc_feeling(it->second.tokens, voc, coinz);
+        add_vectors(feels[it->second.user_id].point,tmp);
+        tmp.clear();
+    }
+}
 
 void cluster_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc){
     data_point<double> temp;
