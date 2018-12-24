@@ -198,7 +198,8 @@ int main(int argc, char** argv) {
             tmp.clear();
         }
     }
-    map<int,data_point<double>>::iterator fit;
+    /*Print Feels
+     * map<int,data_point<double>>::iterator fit;
     for(fit=feels.begin();fit!=feels.end();fit++){
         cout << "User: " << fit->first <<endl;
         for(int i=0;i<fit->second.point.size();i++) {
@@ -207,6 +208,7 @@ int main(int argc, char** argv) {
         cout << endl;
         if(fit->first==0)
             break;
-    }
+    }*/
+    
     return 0;
 }
