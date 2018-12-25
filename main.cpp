@@ -92,7 +92,7 @@ struct recom{
 
 
 vector<recom> rec_nn(map<string,value_point<double>> bucks, data_point<double> point) {
-    vector<recom> recomm, fail;
+    vector<recom> recomm(100), fail;
     for(int i=0;i<100;i++){
         recomm[i].value=point.point[i];
         recomm[i].coin=i;
@@ -114,6 +114,35 @@ vector<recom> rec_nn(map<string,value_point<double>> bucks, data_point<double> p
 }
 
 bool myfunction (recom i,recom j) { return (i.value<j.value); }
+
+bool in_init(int coin,data_point<double> data){
+    return (data.point[coin]>0.0);
+}
+
+
+void print_recom(vector<recom> recomm,data_point<double> data,int coins,vector<string>* cn){
+    int i=99;
+    vector<int> coins_ids;
+    while((coins>0)&&(i>0)){
+        if(in_init(recomm[i].coin,data)){
+            i--;
+            continue;
+        }
+        else{
+            coins_ids.push_back(recomm[i].coin);
+            coins--;
+            i--;
+        }
+    }
+    if (coins==0) {
+        cout << "<u"+data.name+"> ";
+        for(int i=0;i<coins_ids.size();i++)
+            cout << cn[coins_ids[i]][0] << " " ;
+        cout << endl;
+    }
+    return;
+}
+
 
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
@@ -163,7 +192,7 @@ int main(int argc, char** argv) {
     //5 best Coins
     int table_size,i=0;
     vector<int> r;
-    vector<Hash_table> tables ;
+    vector<Hash_table> tables,tables2 ;
     data_point<double> data_set[users_feels];
     for (fit=feels.begin();fit!=feels.end();fit++){
         data_set[i]=fit->second;
@@ -183,17 +212,46 @@ int main(int argc, char** argv) {
         }
         if (bucks.size()==0) continue;
         recomm=rec_nn(bucks,data_set[k]);
-        cout << "User: " << data_set[k].name << endl;
-        for(int i =0 ; i<100 ; i++){
-            if(recomm[i].value!=data_set->point[i])
-                cout <<i<<": "<< recomm[i].value<<"-"<<data_set->point[i] << endl;
-        }
         sort(recomm.begin(),recomm.end(),myfunction);
-        for(int i = 0; i < 100 ; i++)
-            cout << recomm[i].value << " " << "coin: "<<recomm[i].coin << endl;
+        print_recom(recomm,data_set[k],5,coinz);
         recomm.clear();
         bucks.clear();
-        break;
+    }
+    tables.clear();
+
+
+
+
+
+
+    feels.clear();
+    cluster_feels(raw_tweets,feels,coinz,voc);
+    int cluster_feels=feels.size();
+    /* Cosine LSH Recommendation */
+
+    //2 best Coins from clusters
+    data_point<double> data_set2[cluster_feels];
+    i=0;
+    for (fit=feels.begin();fit!=feels.end();fit++){
+        data_set2[i]=fit->second;
+        i++;
+    }
+    r.clear();
+    random_vector(r,const_lsh::k);
+    table_size=create_tables(tables2,"cosine",cluster_feels,dim);
+    feed_tables(tables2,data_set2,table_size,cluster_feels,r);
+
+    for (int k = 0; k < users_feels; k++) {
+        for (int i=0;i<tables2.size();i++){
+            query_key=tables2[i].query_item(data_set[k],table_size,r);
+            tables2[i].get_bucket(data_set[k],query_key, bucks,r);
+        }
+        if (bucks.size()==0) continue;
+        recomm=rec_nn(bucks,data_set[k]);
+        sort(recomm.begin(),recomm.end(),myfunction);
+        print_recom(recomm,data_set[k],2,coinz);
+        recomm.clear();
+        bucks.clear();
     }
 
     return 0;
