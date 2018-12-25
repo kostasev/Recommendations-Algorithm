@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <map>
+#include <algorithm>
 #include "constants.h"
 #include "utilities.h"
 #include "data_point.h"
@@ -84,32 +85,35 @@ double cosine_similarity(vector<double> p1,vector<double> p2)
         return 0.0;
 }
 
-vector<double> rec_nn(map<string,value_point<double>> bucks, data_point<double> point) {
-    vector<double> recom=point.point, fail;
-    for (int i=0;i<100;i++)
-        cout << recom[i] << " ";
+struct recom{
+    double value;
+    int coin;
+};
+
+
+vector<recom> rec_nn(map<string,value_point<double>> bucks, data_point<double> point) {
+    vector<recom> recomm, fail;
+    for(int i=0;i<100;i++){
+        recomm[i].value=point.point[i];
+        recomm[i].coin=i;
+    }
     if(bucks.size()==0){
         return fail;
     }
     double cosine;
     for (auto  it = bucks.begin(); it != bucks.end(); it++ ){
         cosine=cosine_similarity(point.point,it->second.p->point);
-        cout << "COSINE " << cosine <<endl;
         for(int i=0; i<100;i++){
-            cout << recom[i] << " ";
-            recom[i]+=cosine*it->second.p->point[i];
+            recomm[i].value+=cosine*it->second.p->point[i];
         }
-        cout <<endl;
     }
-    for (int i=0;i<100;i++)
-        cout << recom[i] << " ";
-    for (int i=0 ; i < recom.size(); i++){
-        recom[i]*=consts::z;
+    for (int i=0 ; i < recomm.size(); i++){
+        recomm[i].value*=consts::z;
     }
-    for (int i=0;i<100;i++)
-        cout << recom[i] << " ";
-    return recom;
+    return recomm;
 }
+
+bool myfunction (recom i,recom j) { return (i.value<j.value); }
 
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
@@ -170,7 +174,7 @@ int main(int argc, char** argv) {
     feed_tables(tables,data_set,table_size,users_feels,r);
 
     map<string, value_point<double>> bucks;
-    vector<double> recom;
+    vector<recom> recomm;
     Key query_key;
     for (int k = 0; k < users_feels; k++) {
         for (int i=0;i<tables.size();i++){
@@ -178,15 +182,18 @@ int main(int argc, char** argv) {
             tables[i].get_bucket(data_set[k],query_key, bucks,r);
         }
         if (bucks.size()==0) continue;
-        recom=rec_nn(bucks,data_set[k]);
+        recomm=rec_nn(bucks,data_set[k]);
         cout << "User: " << data_set[k].name << endl;
         for(int i =0 ; i<100 ; i++){
-            if(recom[i]!=data_set->point[i])
-                cout <<i<<": "<< recom[i]<<"-"<<data_set->point[i] << endl;
+            if(recomm[i].value!=data_set->point[i])
+                cout <<i<<": "<< recomm[i].value<<"-"<<data_set->point[i] << endl;
         }
-        recom.clear();
+        sort(recomm.begin(),recomm.end(),myfunction);
+        for(int i = 0; i < 100 ; i++)
+            cout << recomm[i].value << " " << "coin: "<<recomm[i].coin << endl;
+        recomm.clear();
         bucks.clear();
-
+        break;
     }
 
     return 0;
