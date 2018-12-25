@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include "data_point.h"
 #include "constants.h"
+#include "Hash_table.h"
 
 using namespace std;
 
@@ -34,4 +35,11 @@ vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<
 void cluster_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc);
 void print_feels(map<int,data_point<double>> feels);
 bool vectors_eq(std::vector<double> v1, std::vector<double> v2);
+void user_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc);
+void random_vector(vector<int> &r,int k );
+int create_tables(vector<Hash_table> &tables,string metric,int num_lines,int dim);
+void feed_tables(vector<Hash_table> &tables,data_point<double> *data_set,int table_size,int num_lines,vector<int> r);
+double cosine_similarity(vector<double> p1,vector<double> p2);
+vector<recom> rec_nn(map<string,value_point<double>> bucks, data_point<double> point);
+void print_recom(vector<recom> recomm,data_point<double> data,int coins,vector<string>* cn);
 #endif //PROJECT2_UTILITIES_H
