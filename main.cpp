@@ -21,7 +21,7 @@
 
 using namespace std;
 
-void user_feels(map<int,tweet> raw_tweets, map<int,data_point<double>> feels,vector<string>* coinz, map<string,float> voc){
+void user_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc){
     data_point<double> temp;
     temp.sum=0;
 
@@ -29,7 +29,7 @@ void user_feels(map<int,tweet> raw_tweets, map<int,data_point<double>> feels,vec
         temp.point.push_back(0.0);
     map<int,tweet>::iterator it;
     for ( it=raw_tweets.begin();it!=raw_tweets.end();it++ ){
-        temp.name=it->second.user_id;
+        temp.name=to_string(it->second.user_id);
         feels.insert(pair<int,data_point<double >>(it->second.user_id,temp));
     }
     vector<double> tmp;
@@ -73,29 +73,41 @@ void feed_tables(vector<Hash_table> &tables,data_point<double> *data_set,int tab
 double cosine_similarity(vector<double> p1,vector<double> p2)
 {
     double dot = 0.0, denom_a = 0.0, denom_b = 0.0 ;
-    for(unsigned int i = 0u; i < p1.size(); i++) {
+    for(unsigned int i = 0; i < p1.size(); i++) {
         dot += p1[i] * p2[i] ;
         denom_a += p1[i] * p1[i] ;
         denom_b += p2[i] * p2[i] ;
     }
-    return dot / (sqrt(denom_a) * sqrt(denom_b)) ;
+    if(denom_a!=0.0&&denom_b!=0.0)
+        return dot / (sqrt(denom_a) * sqrt(denom_b)) ;
+    else
+        return 0.0;
 }
 
 vector<double> rec_nn(map<string,value_point<double>> bucks, data_point<double> point) {
     vector<double> recom=point.point, fail;
+    for (int i=0;i<100;i++)
+        cout << recom[i] << " ";
     if(bucks.size()==0){
         return fail;
     }
     double cosine;
     for (auto  it = bucks.begin(); it != bucks.end(); it++ ){
         cosine=cosine_similarity(point.point,it->second.p->point);
-        for(int i=0; i<it->second.p->point.size();i++){
+        cout << "COSINE " << cosine <<endl;
+        for(int i=0; i<100;i++){
+            cout << recom[i] << " ";
             recom[i]+=cosine*it->second.p->point[i];
         }
+        cout <<endl;
     }
+    for (int i=0;i<100;i++)
+        cout << recom[i] << " ";
     for (int i=0 ; i < recom.size(); i++){
         recom[i]*=consts::z;
     }
+    for (int i=0;i<100;i++)
+        cout << recom[i] << " ";
     return recom;
 }
 
@@ -136,24 +148,8 @@ int main(int argc, char** argv) {
     feed_voc(consts::voc,voc);
     feed_tweets(consts::tweets,raw_tweets);
 
-    //user_feels( raw_tweets, feels,coinz, voc);
+    user_feels( raw_tweets, feels,coinz, voc);
     data_point<double> temp;
-    temp.sum=0;
-
-    for(int i=0;i<100;i++)
-        temp.point.push_back(0.0);
-    map<int,tweet>::iterator it;
-    for ( it=raw_tweets.begin();it!=raw_tweets.end();it++ ){
-        temp.name=to_string(it->second.user_id);
-        feels.insert(pair<int,data_point<double >>(it->second.user_id,temp));
-    }
-    temp.point.clear();
-    vector<double> tmp;
-    for( it =raw_tweets.begin(); it!=raw_tweets.end();it++ ){
-        tmp=calc_feeling(it->second.tokens, voc, coinz);
-        add_vectors(feels[it->second.user_id].point,tmp);
-        //tmp.clear();
-    }
     int users_feels = feels.size();
     //cluster_feels(raw_tweets,feels,coinz,voc);
     //int cluster_feels=feels.size()-users_feels;
@@ -163,7 +159,7 @@ int main(int argc, char** argv) {
     //5 best Coins
     int table_size,i=0;
     vector<int> r;
-    vector <Hash_table> tables ;
+    vector<Hash_table> tables ;
     data_point<double> data_set[users_feels];
     for (fit=feels.begin();fit!=feels.end();fit++){
         data_set[i]=fit->second;
@@ -171,7 +167,7 @@ int main(int argc, char** argv) {
     }
     random_vector(r,const_lsh::k);
     table_size=create_tables(tables,"cosine",users_feels,dim);
-    feed_tables(tables,data_set,table_size,num_lines,r);
+    feed_tables(tables,data_set,table_size,users_feels,r);
 
     map<string, value_point<double>> bucks;
     vector<double> recom;
@@ -181,12 +177,16 @@ int main(int argc, char** argv) {
             query_key=tables[i].query_item(data_set[k],table_size,r);
             tables[i].get_bucket(data_set[k],query_key, bucks,r);
         }
+        if (bucks.size()==0) continue;
         recom=rec_nn(bucks,data_set[k]);
         cout << "User: " << data_set[k].name << endl;
-
+        for(int i =0 ; i<100 ; i++){
+            if(recom[i]!=data_set->point[i])
+                cout <<i<<": "<< recom[i]<<"-"<<data_set->point[i] << endl;
+        }
         recom.clear();
         bucks.clear();
-        break;
+
     }
 
     return 0;
