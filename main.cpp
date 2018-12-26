@@ -133,6 +133,22 @@ vector<cluster> create_random_centroids(data_point<double> *dat,int k,int length
     }
     return clusters1;
 }
+void normalize(cluster& cl){
+    vector<data_point<double>> temp=cl.get_items();
+    vector<double> rec(100,0.0);
+    for(int i=0;i<cl.get_items().size();i++){
+        for(int j=0;j<100;j++){
+            rec[j]+=temp[i].point[j];
+        }
+    }
+    for(int j=0;j<100;j++){
+        rec[j]/=cl.get_items().size();
+    }
+    data_point<double> new_centroid;
+    new_centroid.point=rec;
+    cl.set_centroid(new_centroid);
+    return;
+}
 
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
@@ -244,7 +260,6 @@ int main(int argc, char** argv) {
     assign_to_clusters(data_set,clusters,users_feels,"euclidean");
     vector<cluster> temp_v;
     int same=0;
-    char rand_name[21];
     for(int rr=0;rr<100;rr++){
         for (int i=0;i<clusters.size(); i++){
             temp_v.push_back(clusters[i]);
@@ -278,19 +293,10 @@ int main(int argc, char** argv) {
         cout << "iterration: " << rr <<endl;
     }
     for (int i=0; i <clusters.size();i++){
-        cout << "Cluster-" << i <<endl;
-        clusters[i].print_cluster();
-    }
-    for (int i=0; i <clusters.size();i++){
-        cout << "Cluster-" << i <<endl;
-        clusters[i].print_centroid();
-    }
-    /*for (int i=0; i <clusters.size();i++){
         normalize(clusters[i]);
+        print_recom_cluster(cluster[i])
     }
-    for (int i=0; i <clusters.size();i++){
-        print_rec(cluster[i])
-    }*/
     return 0;
 }
+
 
