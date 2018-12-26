@@ -60,16 +60,16 @@ vector<double> calculate_mean_centroid(cluster cl) {
     int len = 0;
     if(size > 0 )
         len=cluster_dat[0].point.size();
-    vector<double> new_cl(204, 0.0);
+    vector<double> new_cl(100, 0.0);
 
-    if(size > 0 && len == 204){
+    if(size > 0 && len == 100){
         for (int i = 0; i < len; i++) {
             for (int j = 0; j < size; j++) {
                 new_cl[i] += cluster_dat[j].point[i];
             }
         }
 
-        for (int i = 0; i < 204; i++){
+        for (int i = 0; i < 100; i++){
             new_cl[i]/=size;
         }
     }
@@ -107,6 +107,29 @@ vector<cluster> create_kmeans_centroids(data_point<double> *dat,int k,int length
             }
         }
         clusters1.emplace_back(temp_cent2);
+    }
+    return clusters1;
+}
+
+vector<cluster> create_random_centroids(data_point<double> *dat,int k,int length){
+    int flag=0;
+    vector<cluster> clusters1;
+    std::random_device rd; // assume unsigned int is 32 bits
+    std::mt19937_64 generator(rd()); // seeded with 256 bits of entropy from random_device
+    std::uniform_int_distribution<int>   uint_dist(0,length-1);
+    for(int i=0 ; i < k ;i++){
+        cluster temp1=cluster(dat[uint_dist(generator)]);
+        for (int j=0;j<clusters1.size();j++){
+            if(clusters1[j].get_centroid().name==temp1.get_centroid().name){
+                i--;
+                flag=1;
+                break;
+            }
+        }
+        if (flag==0)
+            clusters1.push_back(temp1);
+        else
+            flag=0;
     }
     return clusters1;
 }
@@ -217,12 +240,12 @@ int main(int argc, char** argv) {
     //Clustering users
     //Give 5 Recommendations
     vector<cluster> clusters;
-    clusters=create_kmeans_centroids(data_set,100,num_lines,"euclidean");
-    assign_to_clusters(data_set,clusters,num_lines,"euclidean");
+    clusters=create_kmeans_centroids(data_set,100,users_feels,"euclidean");
+    assign_to_clusters(data_set,clusters,users_feels,"euclidean");
     vector<cluster> temp_v;
     int same=0;
     char rand_name[21];
-    for(int rr=0;rr<25;rr++){
+    for(int rr=0;rr<100;rr++){
         for (int i=0;i<clusters.size(); i++){
             temp_v.push_back(clusters[i]);
         }
@@ -239,7 +262,7 @@ int main(int argc, char** argv) {
         for(int r=0;r<clusters.size();r++){
             clusters[r].empty_clitems();
         }
-        assign_to_clusters(data_set,clusters,num_lines,"euclidean");
+        assign_to_clusters(data_set,clusters,users_feels,"euclidean");
         for(int i=0;i<clusters.size();i++){
             if (clusters[i].check_equal(temp_v[i]) == 1 ){
                 same++;
@@ -253,6 +276,14 @@ int main(int argc, char** argv) {
         same=0;
         temp_v.clear();
         cout << "iterration: " << rr <<endl;
+    }
+    for (int i=0; i <clusters.size();i++){
+        cout << "Cluster-" << i <<endl;
+        clusters[i].print_cluster();
+    }
+    for (int i=0; i <clusters.size();i++){
+        cout << "Cluster-" << i <<endl;
+        clusters[i].print_centroid();
     }
     /*for (int i=0; i <clusters.size();i++){
         normalize(clusters[i]);

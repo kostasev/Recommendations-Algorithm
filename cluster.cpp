@@ -29,7 +29,7 @@ void cluster::empty_clitems() {
     this->clitems.clear();
 }
 void cluster::print_centroid() {
-    cout << "Item: " << centroid.name << endl;
+    cout << "Item: " << centroid.name  << " Size: " << centroid.point.size() << endl;
     for (int i = 0 ; i< centroid.point.size(); i++){
         cout << centroid.point[i] << " " ;
     }
@@ -40,7 +40,10 @@ void cluster::print_cluster() {
     cout << "Centroid: " << this->centroid.name << endl;
     cout << "Cluster Size: " << this->clitems.size() << endl;
     for (int i = 0 ; i< this->clitems.size() ; i++){
-        cout << this->clitems[i].name << " " ;
+        cout << this->clitems[i].name << endl ;
+        for (int j=0;j<this->clitems[i].point.size();j++)
+            cout << this->clitems[i].point[j] << " ";
+        cout <<endl;
     }
     cout <<endl;
 }
