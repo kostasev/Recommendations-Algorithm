@@ -151,10 +151,47 @@ void normalize(cluster& cl){
 }
 
 
-void print_recom_cluster(cluster cl){
 
+void cros_val( map<int,data_point<double>> feels,vector<string> *coinz){
+    int part_size=(feels.size()/10)+1;
+    int start=0;
+    int end=part_size;
+    int table_size,j=0,users_feels=feels.size();
+    map<int,data_point<double>>::iterator fit;
+    for(int i=0;i<10;i++) {
+        //vector<data_point<double>> test = get_part(feels, i);
+        //erase_rand_coin(test);
+
+        vector<int> r;
+        vector<Hash_table> tables ;
+        data_point<double> data_set[users_feels];
+        j=0;
+        for (fit=feels.begin();fit!=feels.end();fit++){
+            data_set[j]=fit->second;
+            j++;
+        }
+        random_vector(r,const_lsh::k);
+        table_size=create_tables(tables,"cosine",users_feels,100);
+        feed_tables(tables,data_set,table_size,users_feels,r);
+
+        map<string, value_point<double>> bucks;
+        vector<recom> recomm;
+        Key query_key;
+        for (int k = 0; k < feels.size(); k++) {
+            for (int i = 0; i < tables.size(); i++) {
+                query_key = tables[i].query_item(data_set[k], table_size, r);
+                tables[i].get_bucket(data_set[k], query_key, bucks, r);
+            }
+            if (bucks.size() == 0) continue;
+            recomm = rec_nn(bucks, data_set[k]);
+            for(int z=0;z<100;z++){
+                if (recomm[z].value)
+            }
+        }
+    }
     return;
 }
+
 
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
@@ -199,7 +236,7 @@ int main(int argc, char** argv) {
 
     /* Cosine LSH Recommendation */
     //5 best Coins
-
+    dim=100;
     int table_size,i=0;
     vector<int> r;
     vector<Hash_table> tables,tables2 ;
@@ -227,6 +264,7 @@ int main(int argc, char** argv) {
         recomm.clear();
         bucks.clear();
     }
+    //cros_val(feels,coinz);
     tables.clear();
     feels.clear();
     cluster_feel(raw_tweets,feels,coinz,voc);
