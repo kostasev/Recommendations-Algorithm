@@ -159,7 +159,7 @@ void print_recom_cluster(cluster cl){
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
     string input="", output="";
-    while ((c = getopt(argc, argv, "i:o:h")) != -1) {
+    while ((c = getopt(argc, argv, "i:o:")) != -1) {
         switch (c) {
             case 'i':
                 input = optarg;
@@ -186,7 +186,6 @@ int main(int argc, char** argv) {
     map<string,float> voc;
     map<int,tweet> raw_tweets;
     map<int,data_point<double>> feels;
-    map<int,data_point<double>>::iterator fit;
 
     feed_data_set(consts::input_file,vec_tweets,dim,num_lines);
     feed_coins(consts::coins,coinz);
@@ -372,5 +371,3 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
-
-
