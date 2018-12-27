@@ -42,4 +42,5 @@ void feed_tables(vector<Hash_table> &tables,data_point<double> *data_set,int tab
 double cosine_similarity(vector<double> p1,vector<double> p2);
 vector<recom> rec_nn(map<string,value_point<double>> bucks, data_point<double> point);
 void print_recom(vector<recom> recomm,data_point<double> data,int coins,vector<string>* cn);
+vector<recom> rec_nn_cluster(data_point<double> cen, data_point<double> point);
 #endif //PROJECT2_UTILITIES_H

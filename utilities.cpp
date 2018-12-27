@@ -296,6 +296,23 @@ vector<recom> rec_nn(map<string,value_point<double>> bucks, data_point<double> p
     return recomm;
 }
 
+vector<recom> rec_nn_cluster(data_point<double> cen, data_point<double> point) {
+    vector<recom> recomm(100);
+    for(int i=0;i<100;i++){
+        recomm[i].value=point.point[i];
+        recomm[i].coin=i;
+    }
+    double cosine;
+    cosine=cosine_similarity(point.point,cen.point);
+    for(int i=0; i<100;i++){
+        recomm[i].value+=cosine*cen.point[i];
+    }
+    for (int i=0 ; i < recomm.size(); i++){
+        recomm[i].value*=consts::z;
+    }
+    return recomm;
+}
+
 bool in_init(int coin,data_point<double> data){
     return (data.point[coin]>0.0);
 }

@@ -150,6 +150,12 @@ void normalize(cluster& cl){
     return;
 }
 
+
+void print_recom_cluster(cluster cl){
+
+    return;
+}
+
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
     string input="", output="";
@@ -292,9 +298,77 @@ int main(int argc, char** argv) {
         temp_v.clear();
         cout << "iterration: " << rr <<endl;
     }
-    for (int i=0; i <clusters.size();i++){
+    vector<recom> recomm;
+    vector<data_point<double>> items;
+    for (int i=0; i <clusters.size();i++) {
         normalize(clusters[i]);
-        print_recom_cluster(cluster[i])
+        items = clusters[i].get_items();
+        for (int j = 0; j < items.size(); j++) {
+            recomm = rec_nn_cluster(clusters[i].get_centroid(), items[j]);
+            sort(recomm.begin(),recomm.end(),myfunction);
+            print_recom(recomm,items[j],5,coinz);
+        }
+    }
+    clusters.clear();
+    feels.clear();
+    cluster_feels(raw_tweets,feels,coinz,voc);
+    int cluster_feels=feels.size();
+    // Cosine LSH Recommendation
+    //2 best Coins from clusters
+    data_point<double> data_set2[cluster_feels];
+    i=0;
+    for (fit=feels.begin();fit!=feels.end();fit++){
+        data_set2[i]=fit->second;
+        i++;
+    }
+
+    clusters=create_kmeans_centroids(data_set2,25,users_feels,"euclidean");
+    assign_to_clusters(data_set2,clusters,users_feels,"euclidean");
+    assign_to_clusters(data_set,clusters,users_feels,"euclidean");
+    temp_v.clear();
+    same=0;
+    for(int rr=0;rr<100;rr++){
+        for (int i=0;i<clusters.size(); i++){
+            temp_v.push_back(clusters[i]);
+        }
+        for (int i=0;i<clusters.size();i++){
+            vector<double> new_centrer;
+            new_centrer = calculate_mean_centroid(clusters[i]);
+            data_point<double> temp1;
+            temp1.name="Mean";
+            temp1.point=new_centrer;
+            clusters[i].set_centroid(temp1);
+            new_centrer.clear();
+            temp1.point.clear();
+        }
+        for(int r=0;r<clusters.size();r++){
+            clusters[r].empty_clitems();
+        }
+        assign_to_clusters(data_set,clusters,users_feels,"euclidean");
+        for(int i=0;i<clusters.size();i++){
+            if (clusters[i].check_equal(temp_v[i]) == 1 ){
+                same++;
+            }
+        }
+        if (same==clusters.size()){
+            cout << "Cluster did not change. Exit rep: "<< rr << endl;
+            temp_v.clear();
+            break;
+        }
+        same=0;
+        temp_v.clear();
+        cout << "iterration: " << rr <<endl;
+    }
+    recomm.clear();
+    items.clear();
+    for (int i=0; i <clusters.size();i++) {
+        normalize(clusters[i]);
+        items = clusters[i].get_items();
+        for (int j = 0; j < items.size(); j++) {
+            recomm = rec_nn_cluster(clusters[i].get_centroid(), items[j]);
+            sort(recomm.begin(),recomm.end(),myfunction);
+            print_recom(recomm,items[j],2,coinz);
+        }
     }
     return 0;
 }
