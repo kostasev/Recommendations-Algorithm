@@ -173,7 +173,7 @@ vector<double> calc_feeling(vector<string> tweet ,map<string,float> voc ,vector<
 
 
 
-void cluster_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc){
+void cluster_feel(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc){
     data_point<double> temp;
     temp.sum=0;
     vector<double> tmp;

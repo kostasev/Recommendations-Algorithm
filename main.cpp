@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
     }
     tables.clear();
     feels.clear();
-    cluster_feels(raw_tweets,feels,coinz,voc);
+    cluster_feel(raw_tweets,feels,coinz,voc);
     int cluster_feels=feels.size();
     // Cosine LSH Recommendation
     //2 best Coins from clusters
@@ -256,9 +256,12 @@ int main(int argc, char** argv) {
         recomm.clear();
         bucks.clear();
     }
+    feels.clear();
 
     //Clustering users
-    //Give 5 Recommendations
+    //Give 5 Recom+mendations
+    user_feels( raw_tweets, feels,coinz, voc);
+    users_feels = feels.size();
     vector<cluster> clusters;
     clusters=create_kmeans_centroids(data_set,100,users_feels,"euclidean");
     assign_to_clusters(data_set,clusters,users_feels,"euclidean");
@@ -308,9 +311,10 @@ int main(int argc, char** argv) {
     }
     clusters.clear();
     feels.clear();
-    cluster_feels=feels.size();
     // Cosine LSH Recommendation
     //2 best Coins from clusters
+    cluster_feel(raw_tweets,feels,coinz,voc);
+    cluster_feels=feels.size();
 
     clusters=create_kmeans_centroids(data_set2,25,cluster_feels,"euclidean");
     assign_to_clusters(data_set2,clusters,cluster_feels,"euclidean");
