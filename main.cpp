@@ -208,7 +208,6 @@ int main(int argc, char** argv) {
         data_set[i]=fit->second;
         i++;
     }
-    /* START
     random_vector(r,const_lsh::k);
     table_size=create_tables(tables,"cosine",users_feels,dim);
     feed_tables(tables,data_set,table_size,users_feels,r);
@@ -256,8 +255,7 @@ int main(int argc, char** argv) {
         print_recom(recomm,data_set[k],2,coinz);
         recomm.clear();
         bucks.clear();
-    }*/
-    //END
+    }
 
     //Clustering users
     //Give 5 Recommendations
@@ -298,7 +296,6 @@ int main(int argc, char** argv) {
         temp_v.clear();
         cout << "iterration: " << rr <<endl;
     }
-    vector<recom> recomm;
     vector<data_point<double>> items;
     for (int i=0; i <clusters.size();i++) {
         normalize(clusters[i]);
@@ -311,16 +308,9 @@ int main(int argc, char** argv) {
     }
     clusters.clear();
     feels.clear();
-    cluster_feels(raw_tweets,feels,coinz,voc);
-    int cluster_feels=feels.size();
+    cluster_feels=feels.size();
     // Cosine LSH Recommendation
     //2 best Coins from clusters
-    data_point<double> data_set2[cluster_feels];
-    i=0;
-    for (fit=feels.begin();fit!=feels.end();fit++){
-        data_set2[i]=fit->second;
-        i++;
-    }
 
     clusters=create_kmeans_centroids(data_set2,25,cluster_feels,"euclidean");
     assign_to_clusters(data_set2,clusters,cluster_feels,"euclidean");
