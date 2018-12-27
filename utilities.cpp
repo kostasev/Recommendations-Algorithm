@@ -219,3 +219,134 @@ void print_feels(map<int,data_point<double>> feels){
             break;
     }
 }
+void user_feels(map<int,tweet> raw_tweets, map<int,data_point<double>>& feels,vector<string>* coinz, map<string,float> voc){
+    data_point<double> temp;
+    temp.sum=0;
+
+    for(int i=0;i<100;i++)
+        temp.point.push_back(0.0);
+    map<int,tweet>::iterator it;
+    for ( it=raw_tweets.begin();it!=raw_tweets.end();it++ ){
+        temp.name=to_string(it->second.user_id);
+        feels.insert(pair<int,data_point<double >>(it->second.user_id,temp));
+    }
+    vector<double> tmp;
+    for( it =raw_tweets.begin(); it!=raw_tweets.end();it++ ){
+        tmp=calc_feeling(it->second.tokens, voc, coinz);
+        add_vectors(feels[it->second.user_id].point,tmp);
+        tmp.clear();
+    }
+}
+
+void random_vector(vector<int> &r,int k ){
+    std::mt19937 generator;
+    generator.seed(std::default_random_engine()());
+    std::uniform_int_distribution<int>   int_dist(-99,99);
+    for(int i=0; i<k ; i++){
+        r.push_back(int_dist(generator));
+    }
+}
+
+int create_tables(vector<Hash_table> &tables,string metric,int num_lines,int dim){
+    int table_size;
+    if (metric=="euclidean")
+        table_size = num_lines/const_lsh::table_size;
+    else
+        table_size = (int) pow(2.0,const_lsh::k);
+
+    for (int i=0; i<const_lsh::L ; i++){
+        tables.push_back(Hash_table(table_size, dim, const_lsh::k, metric));
+    }
+    return table_size;
+}
+
+void feed_tables(vector<Hash_table> &tables,data_point<double> *data_set,int table_size,int num_lines,vector<int> r){
+    for (int j=0;j<tables.size();j++) {
+        for (int i = 0; i < num_lines; i++) {
+            tables[j].add_item(data_set[i],table_size,r);
+        }
+    }
+}
+
+double cosine_similarity(vector<double> p1,vector<double> p2)
+{
+    double dot = 0.0, denom_a = 0.0, denom_b = 0.0 ;
+    for(unsigned int i = 0; i < p1.size(); i++) {
+        dot += p1[i] * p2[i] ;
+        denom_a += p1[i] * p1[i] ;
+        denom_b += p2[i] * p2[i] ;
+    }
+    if(denom_a!=0.0&&denom_b!=0.0)
+        return dot / (sqrt(denom_a) * sqrt(denom_b)) ;
+    else
+        return 0.0;
+}
+
+vector<recom> rec_nn(map<string,value_point<double>> bucks, data_point<double> point) {
+    vector<recom> recomm(100), fail;
+    for(int i=0;i<100;i++){
+        recomm[i].value=point.point[i];
+        recomm[i].coin=i;
+    }
+    if(bucks.size()==0){
+        return fail;
+    }
+    double cosine;
+    for (auto  it = bucks.begin(); it != bucks.end(); it++ ){
+        cosine=cosine_similarity(point.point,it->second.p->point);
+        for(int i=0; i<100;i++){
+            recomm[i].value+=cosine*it->second.p->point[i];
+        }
+    }
+    for (int i=0 ; i < recomm.size(); i++){
+        recomm[i].value*=consts::z;
+    }
+    return recomm;
+}
+
+vector<recom> rec_nn_cluster(data_point<double> cen, data_point<double> point) {
+    vector<recom> recomm(100);
+    for(int i=0;i<100;i++){
+        recomm[i].value=point.point[i];
+        recomm[i].coin=i;
+    }
+    double cosine;
+    cosine=cosine_similarity(point.point,cen.point);
+    for(int i=0; i<100;i++){
+        recomm[i].value+=cosine*cen.point[i];
+    }
+    for (int i=0 ; i < recomm.size(); i++){
+        recomm[i].value*=consts::z;
+    }
+    return recomm;
+}
+
+bool in_init(int coin,data_point<double> data){
+    return (data.point[coin]>0.0);
+}
+
+
+void print_recom(vector<recom> recomm,data_point<double> data,int coins,vector<string>* cn){
+    int i=99;
+    vector<int> coins_ids;
+    while((coins>0)&&(i>0)){
+        if(in_init(recomm[i].coin,data)){
+            i--;
+            continue;
+        }
+        else{
+            coins_ids.push_back(recomm[i].coin);
+            coins--;
+            i--;
+        }
+    }
+    if (coins==0) {
+        cout << "<u"+data.name+"> ";
+        for(int i=0;i<coins_ids.size();i++)
+            cout << cn[coins_ids[i]][0] << " " ;
+        cout << endl;
+    }
+    return;
+}
+
+

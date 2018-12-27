@@ -20,4 +20,9 @@ struct tweet {
     std::vector<std::string> tokens;
 };
 
+struct recom{
+    double value;
+    int coin;
+};
+
 #endif //PROJECT2_DATA_POINT_H
