@@ -322,9 +322,9 @@ int main(int argc, char** argv) {
         i++;
     }
 
-    clusters=create_kmeans_centroids(data_set2,25,users_feels,"euclidean");
-    assign_to_clusters(data_set2,clusters,users_feels,"euclidean");
-    assign_to_clusters(data_set,clusters,users_feels,"euclidean");
+    clusters=create_kmeans_centroids(data_set2,25,cluster_feels,"euclidean");
+    assign_to_clusters(data_set2,clusters,cluster_feels,"euclidean");
+    assign_to_clusters(data_set,clusters,cluster_feels,"euclidean");
     temp_v.clear();
     same=0;
     for(int rr=0;rr<100;rr++){
