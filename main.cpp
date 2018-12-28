@@ -186,7 +186,7 @@ int erase_rand_coin(vector<data_point<double>>& test){
 }
 
 
-void cros_val( map<int,data_point<double>>& feels,vector<string> *coinz){
+void cros_val_lsh( map<int,data_point<double>>& feels,vector<string> *coinz){
     int part_size=(feels.size()/10)+1;
     int start=0;
     int end=part_size;
@@ -287,8 +287,6 @@ int main(int argc, char** argv) {
     user_feels( raw_tweets, feels,coinz, voc);
     data_point<double> temp;
     int users_feels = feels.size();
-    cros_val(feels,coinz);
-    return 0;
     /* Cosine LSH Recommendation */
     //5 best Coins
     dim=100;
@@ -303,7 +301,7 @@ int main(int argc, char** argv) {
     random_vector(r,const_lsh::k);
     table_size=create_tables(tables,"cosine",users_feels,dim);
     feed_tables(tables,data_set,table_size,users_feels,r);
-
+    cros_val_lsh(feels,coinz);
     map<string, value_point<double>> bucks;
     vector<recom> recomm;
     Key query_key;
@@ -319,10 +317,8 @@ int main(int argc, char** argv) {
         recomm.clear();
         bucks.clear();
     }
-    cros_val(feels,coinz);
     tables.clear();
     feels.clear();
-    return 0;
     cluster_feel(raw_tweets,feels,coinz,voc);
     int cluster_feels=feels.size();
     // Cosine LSH Recommendation
@@ -458,6 +454,7 @@ int main(int argc, char** argv) {
             print_recom(recomm,items[j],2,coinz);
         }
     }
+    cros_val_lsh(feels,coinz);
     return 0;
 }
 
