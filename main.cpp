@@ -176,17 +176,19 @@ int rand_coin(vector<double> vec){
     return vec[num];
 }
 
-int erase_rand_coin(vector<data_point<double>>& test){
+vector<int> erase_rand_coin(vector<data_point<double>>& test){
+    vector<int> coins;
     int coin;
     for(int i=0;i<test.size();i++){
         coin = rand_coin(test[i].point);
+        coins.push_back(coin);
         test[i].point[coin]=0.0;
     }
-    return coin;
+    return coins;
 }
 
 
-void cros_val_lsh( map<int,data_point<double>>& feels,vector<string> *coinz){
+void cros_val_lsh( map<int,data_point<double>>& feels){
     int part_size=(feels.size()/10)+1;
     int start=0;
     int end=part_size;
@@ -202,7 +204,7 @@ void cros_val_lsh( map<int,data_point<double>>& feels,vector<string> *coinz){
     for(int i=0;i<10;i++) {
         mae=0;
         test = get_part(feels, i);
-        int erased_coin=erase_rand_coin(test);
+        vector<int> erased_coins=erase_rand_coin(test);
         end=(i+1)*part_size;
         if(i==9) end = 3521;
         start = i*part_size;
@@ -236,13 +238,100 @@ void cros_val_lsh( map<int,data_point<double>>& feels,vector<string> *coinz){
             }
             if (bucks.size() == 0) continue;
             recomm = rec_nn(bucks, bc_test[i][k]);
-            mae+=abs(recomm[erased_coin].value-bc_test[i][k].point[erased_coin]);
+            mae+=abs(recomm[erased_coins[k]].value-bc_test[i][k].point[erased_coins[k]]);
         }
         tables[i].clear();
         mae/=part_size;
         sum_mae+=mae;
     }
     cout << "Cosine LSH Recommendation MAE: " << sum_mae <<endl;
+    return;
+}
+
+void cros_val_cluster( map<int,data_point<double>>& feels){
+    int part_size=(feels.size()/10)+1;
+    int start,end;
+    int j=0,users_feels=feels.size();
+    map<int,data_point<double>>::iterator fit;
+    double sum_mae=0,mae;
+    vector<data_point<double>> test ;
+    data_point<double> data_set[10][users_feels];
+    data_point<double> bc_test[10][part_size+1];
+    vector<cluster> clusters;
+    int same;
+    vector<cluster> temp_v;
+    vector<data_point<double>> items;
+    for(int i=0;i<10;i++) {
+        mae=0;
+        test = get_part(feels, i);
+        vector<int> erased_coins=erase_rand_coin(test);
+        end=(i+1)*part_size;
+        if(i==9) end = 3521;
+        start = i*part_size;
+        j=0;
+        int data_counter=0;
+        int bc_data_counter=0;
+        int last;
+        for (fit=feels.begin();fit!=feels.end();fit++){
+            if(!((j>=start)&&(j<=end))){
+                data_set[i][data_counter++]=fit->second;
+            }
+            else {
+                bc_test[i][bc_data_counter++]=fit->second;
+                last=bc_data_counter-1;
+            }
+            j++;
+        }
+        clusters=create_kmeans_centroids(data_set[i],100,feels.size()-part_size-1,"euclidean");
+        assign_to_clusters(data_set[i],clusters,feels.size()-part_size-1,"euclidean");
+        temp_v.clear();
+        same=0;
+        for(int rr=0;rr<100;rr++){
+            for (int i=0;i<clusters.size(); i++){
+                temp_v.push_back(clusters[i]);
+            }
+            for (int i=0;i<clusters.size();i++){
+                vector<double> new_centrer;
+                new_centrer = calculate_mean_centroid(clusters[i]);
+                data_point<double> temp1;
+                temp1.name="Mean";
+                temp1.point=new_centrer;
+                clusters[i].set_centroid(temp1);
+                new_centrer.clear();
+                temp1.point.clear();
+            }
+            for(int r=0;r<clusters.size();r++){
+                clusters[r].empty_clitems();
+            }
+            assign_to_clusters(data_set[i],clusters,feels.size()-part_size-1,"euclidean");
+            for(int i=0;i<clusters.size();i++){
+                if (clusters[i].check_equal(temp_v[i]) == 1 ){
+                    same++;
+                }
+            }
+            if (same==clusters.size()){
+                cout << "Cluster did not change. Exit rep: "<< rr << endl;
+                temp_v.clear();
+                break;
+            }
+            same=0;
+            temp_v.clear();
+            cout << "iterration: " << rr <<endl;
+        }
+        vector<recom> recomm;
+        items.clear();
+        for (int i=0; i <clusters.size();i++) {
+            normalize(clusters[i]);
+            items = clusters[i].get_items();
+            for (int j = 0; j < items.size(); j++) {
+                recomm = rec_nn_cluster(clusters[i].get_centroid(), items[j]);
+                mae+=abs(recomm[erased_coins[j]].value-bc_test[i][j].point[erased_coins[j]]);
+            }
+        }
+        mae/=part_size;
+        sum_mae+=mae;
+    }
+    cout << "Cluster Recommendation MAE: " << sum_mae <<endl;
     return;
 }
 
@@ -283,10 +372,10 @@ int main(int argc, char** argv) {
     feed_coins(consts::coins,coinz);
     feed_voc(consts::voc,voc);
     feed_tweets(consts::tweets,raw_tweets);
-
     user_feels( raw_tweets, feels,coinz, voc);
     data_point<double> temp;
     int users_feels = feels.size();
+    cros_val_lsh(feels);
     /* Cosine LSH Recommendation */
     //5 best Coins
     dim=100;
@@ -301,7 +390,8 @@ int main(int argc, char** argv) {
     random_vector(r,const_lsh::k);
     table_size=create_tables(tables,"cosine",users_feels,dim);
     feed_tables(tables,data_set,table_size,users_feels,r);
-    cros_val_lsh(feels,coinz);
+    cros_val_cluster(feels);
+    cros_val_lsh(feels);
     map<string, value_point<double>> bucks;
     vector<recom> recomm;
     Key query_key;
@@ -454,7 +544,7 @@ int main(int argc, char** argv) {
             print_recom(recomm,items[j],2,coinz);
         }
     }
-    cros_val_lsh(feels,coinz);
+    cros_val_lsh(feels);
     return 0;
 }
 
