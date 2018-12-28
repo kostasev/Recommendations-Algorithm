@@ -193,46 +193,52 @@ void cros_val( map<int,data_point<double>>& feels,vector<string> *coinz){
     int table_size,j=0,users_feels=feels.size();
     map<int,data_point<double>>::iterator fit;
     double sum_mae=0,mae;
+    vector<Hash_table> tables[10] ;
+    vector<data_point<double>> test ;
+    data_point<double> data_set[10][users_feels];
+    vector<int> r;
+    data_point<double> bc_test[10][part_size+1];
+    map<string, value_point<double>> bucks;
     for(int i=0;i<10;i++) {
         mae=0;
-        vector<data_point<double>> test = get_part(feels, i);
-        data_point<double> bc_test[part_size+1];
+        test = get_part(feels, i);
         int erased_coin=erase_rand_coin(test);
         end=(i+1)*part_size;
+        if(i==9) end = 3521;
         start = i*part_size;
-        vector<int> r;
-        vector<Hash_table> tables ;
-        data_point<double> data_set[users_feels];
+        r.clear();
+
         j=0;
         int data_counter=0;
         int bc_data_counter=0;
         int last;
         for (fit=feels.begin();fit!=feels.end();fit++){
             if(!((j>=start)&&(j<=end))){
-                data_set[data_counter++]=fit->second;
+                data_set[i][data_counter++]=fit->second;
             }
             else {
-                bc_test[bc_data_counter++]=fit->second;
+                bc_test[i][bc_data_counter++]=fit->second;
                 last=bc_data_counter-1;
             }
             j++;
         }
         random_vector(r,const_lsh::k);
-        table_size=create_tables(tables,"cosine",users_feels,100);
-        feed_tables(tables,data_set,table_size,data_counter-1,r);
+        table_size=create_tables(tables[i],"cosine",users_feels,100);
+        feed_tables(tables[i],data_set[i],table_size,data_counter-1,r);
 
-        map<string, value_point<double>> bucks;
+        bucks.clear();
         vector<recom> recomm;
         Key query_key;
-        for (int k = 0; k < part_size-1; k++) {
-            for (int i = 0; i < tables.size(); i++) {
-                query_key = tables[i].query_item(bc_test[k], table_size, r);
-                tables[i].get_bucket(bc_test[k], query_key, bucks, r);
+        for (int k = 0; k < (end-start); k++) {
+            for (int z = 0; z < tables[i].size(); z++) {
+                query_key = tables[i][z].query_item(bc_test[i][k], table_size, r);
+                tables[i][z].get_bucket(bc_test[i][k], query_key, bucks, r);
             }
             if (bucks.size() == 0) continue;
-            recomm = rec_nn(bucks, bc_test[k]);
-            mae+=abs(recomm[erased_coin].value-bc_test[k].point[erased_coin]);
+            recomm = rec_nn(bucks, bc_test[i][k]);
+            mae+=abs(recomm[erased_coin].value-bc_test[i][k].point[erased_coin]);
         }
+        tables[i].clear();
         mae/=part_size;
         sum_mae+=mae;
     }
