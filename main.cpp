@@ -185,7 +185,7 @@ void cros_val( map<int,data_point<double>> feels,vector<string> *coinz){
             if (bucks.size() == 0) continue;
             recomm = rec_nn(bucks, data_set[k]);
             for(int z=0;z<100;z++){
-                if (recomm[z].value)
+                if (recomm[z].value);
             }
         }
     }
