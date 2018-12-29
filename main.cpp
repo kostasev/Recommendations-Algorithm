@@ -353,10 +353,14 @@ void cros_val_cluster( map<int,data_point<double>>& feels){
 int main(int argc, char** argv) {
     int c, num_lines=0, dim=0;
     string input="", output="";
-    while ((c = getopt(argc, argv, "i:o:h")) != -1) {
+    int validation = 0;
+    while ((c = getopt(argc, argv, "vi:o:h")) != -1) {
         switch (c) {
             case 'i':
                 input = optarg;
+                break;
+            case 'v':
+                validation=1;
                 break;
             case 'o':
                 output = optarg;
@@ -389,8 +393,12 @@ int main(int argc, char** argv) {
     user_feels( raw_tweets, feels,coinz, voc);
     data_point<double> temp;
     int users_feels = feels.size();
-    //cros_val_cluster(feels);
-    //cros_val_lsh(feels);
+    if(validation==1){
+        cros_val_cluster(feels);
+        cros_val_lsh(feels);  
+        return 0;
+    }
+    
     /* Cosine LSH Recommendation */
     //5 best Coins
     dim=100;
@@ -557,7 +565,6 @@ int main(int argc, char** argv) {
             print_recom(recomm,items[j],2,coinz);
         }
     }
-    cros_val_lsh(feels);
     return 0;
 }
 
