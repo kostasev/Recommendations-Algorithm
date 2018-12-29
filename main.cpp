@@ -248,6 +248,22 @@ void cros_val_lsh( map<int,data_point<double>>& feels){
     return;
 }
 
+int query_cluster(vector<cluster> clusters,data_point<double> bc_test){
+    double dist_min,dist;
+    int cluster;
+    dist_min=100000.0;
+    cluster=0;
+    for(int j=0;j<clusters.size();j++){
+        dist=euclidean_dist(bc_test.point,clusters[j].get_centroid().point);
+        if (dist<dist_min){
+            dist_min=dist;
+            cluster=j;
+        }
+    }
+    return cluster;
+}
+
+
 void cros_val_cluster( map<int,data_point<double>>& feels){
     int part_size=(feels.size()/10)+1;
     int start,end;
@@ -320,13 +336,11 @@ void cros_val_cluster( map<int,data_point<double>>& feels){
         }
         vector<recom> recomm;
         items.clear();
-        for (int i=0; i <clusters.size();i++) {
-            normalize(clusters[i]);
-            items = clusters[i].get_items();
-            for (int j = 0; j < items.size(); j++) {
-                recomm = rec_nn_cluster(clusters[i].get_centroid(), items[j]);
-                mae+=abs(recomm[erased_coins[j]].value-bc_test[i][j].point[erased_coins[j]]);
-            }
+        int cl;
+        for (int k = 0; k < (end-start); k++) {
+            cl=query_cluster(clusters,bc_test[i][k]);
+            recomm = rec_nn_cluster(clusters[cl].get_centroid(), bc_test[i][k]);
+            mae+=abs(recomm[erased_coins[k]].value-bc_test[i][k].point[erased_coins[k]]);
         }
         mae/=part_size;
         sum_mae+=mae;
@@ -375,7 +389,8 @@ int main(int argc, char** argv) {
     user_feels( raw_tweets, feels,coinz, voc);
     data_point<double> temp;
     int users_feels = feels.size();
-    cros_val_lsh(feels);
+    //cros_val_cluster(feels);
+    //cros_val_lsh(feels);
     /* Cosine LSH Recommendation */
     //5 best Coins
     dim=100;
@@ -390,8 +405,6 @@ int main(int argc, char** argv) {
     random_vector(r,const_lsh::k);
     table_size=create_tables(tables,"cosine",users_feels,dim);
     feed_tables(tables,data_set,table_size,users_feels,r);
-    cros_val_cluster(feels);
-    cros_val_lsh(feels);
     map<string, value_point<double>> bucks;
     vector<recom> recomm;
     Key query_key;
